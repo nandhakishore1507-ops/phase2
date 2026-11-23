@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="calculator">
+
+        <h2>Smart Calculator</h2>
+
+        <div class="display">
+            <div id="previous"></div>
+            <input type="text" id="result" value="0" readonly>
+        </div>
+
+        <div class="buttons">
+
+            <button class="special" onclick="clearDisplay()">AC</button>
+            <button class="special" onclick="deleteLast()">DEL</button>
+            <button class="operator" onclick="appendOperator('%')">%</button>
+            <button class="operator" onclick="appendOperator('/')">÷</button>
+
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('-')">−</button>
+
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+
+            <button onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('00')">00</button>
+            <button onclick="appendDecimal()">.</button>
+            <button class="equal" onclick="calculate()">=</button>
+
+        </div>
+
+        <p class="footer">Built with HTML, CSS & JavaScript</p>
+
+    </div>
+
+    <script>
+
+        let currentInput = "0";
+        let previousInput = "";
+        let operator = null;
+        let shouldReset = false;
+
+        const result = document.getElementById("result");
+        const previous = document.getElementById("previous");
+
+        // Update calculator display
+        function updateDisplay() {
+            result.value = currentInput;
+        }
+
+        // Enter numbers
+        function appendNumber(number) {
+
+            if (currentInput === "Error") {
+                currentInput = "0";
+            }
+
+            if (shouldReset) {
+                currentInput = number === "00" ? "0" : number;
+                shouldReset = false;
+            } else if (currentInput === "0") {
+                currentInput = number === "00" ? "0" : number;
+            } else if (currentInput.length < 15) {
+                currentInput += number;
+            }
+
+            updateDisplay();
+        }
+
+        // Enter decimal
+        function appendDecimal() {
+
+            if (shouldReset || currentInput === "Error") {
+                currentInput = "0";
+                shouldReset = false;
+            }
+
+            if (!currentInput.includes(".")) {
+                currentInput += ".";
+            }
+
+            updateDisplay();
+        }
+
+        // Enter operator
+        function appendOperator(op) {
+
+            if (currentInput === "Error") return;
+
+            if (operator !== null && !shouldReset) {
+                calculate();
+            }
+
+            previousInput = currentInput;
+            operator = op;
+            shouldReset = true;
+
+            previous.textContent = previousInput + " " + op;
+        }
+
+        // Perform calculation
+        function calculate() {
+
+            if (operator === null || shouldReset) return;
+
+            let a = parseFloat(previousInput);
+            let b = parseFloat(currentInput);
+            let answer;
+
+            switch (operator) {
+
+                case "+":
+                    answer = a + b;
+                    break;
+
+                case "-":
+                    answer = a - b;
+                    break;
+
+                case "*":
+                    answer = a * b;
+                    break;
+
+                case "/":
+                    answer = b === 0 ? NaN : a / b;
+                    break;
+
+                case "%":
+                    answer = a % b;
+                    break;
+            }
+
+            if (!Number.isFinite(answer)) {
+                currentInput = "Error";
+            } else {
+                currentInput = String(
+                    Number(answer.toPrecision(12))
+                );
+            }
+
+            previous.textContent = "";
+            previousInput = "";
+            operator = null;
+            shouldReset = true;
+
+            updateDisplay();
+        }
+
+        // Clear everything
+        function clearDisplay() {
+
+            currentInput = "0";
+            previousInput = "";
+            operator = null;
+            shouldReset = false;
+
+            previous.textContent = "";
+            updateDisplay();
+        }
+
+        // Delete last digit
+        function deleteLast() {
+
+            if (currentInput === "Error" || shouldReset) {
+                currentInput = "0";
+                shouldReset = false;
+            } else {
+                currentInput = currentInput.slice(0, -1);
+
+                if (currentInput === "" || currentInput === "-") {
+                    currentInput = "0";
+                }
+            }
+
+            updateDisplay();
+        }
+
+        // Keyboard support
+        document.addEventListener("keydown", function(event) {
+
+            if (/^[0-9]$/.test(event.key)) {
+                appendNumber(event.key);
+            }
+
+            else if (event.key === ".") {
+                appendDecimal();
+            }
+
+            else if (["+", "-", "*", "/", "%"].includes(event.key)) {
+                appendOperator(event.key);
+            }
+
+            else if (event.key === "Enter" || event.key === "=") {
+                event.preventDefault();
+                calculate();
+            }
+
+            else if (event.key === "Backspace") {
+                deleteLast();
+            }
+
+            else if (event.key === "Escape") {
+                clearDisplay();
+            }
+
+        });
+
+        updateDisplay();
+
+    </script>
+
+</body>
+</html>
